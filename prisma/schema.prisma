@@ -8,6 +8,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+enum RequestStatus {
+  CREATED
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  DECLINED
+}
+
 enum Roles {
   USER
   REQUESTER
@@ -24,4 +33,61 @@ model User {
   roles           Roles[]       @default([USER])
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  requests        Request[]     @relation("RequesterRequests")
+  investigations  Request[]     @relation("InvestigatorRequests")
+  reviews         Review[]
+  receivedReviews Review[]      @relation("InvestigatorReviews")
+  reports         Report[]      @relation("InvestigatorReports")
+  sentMessages    Message[]     @relation("UserMessages")
+}
+
+model Request {
+  id             String        @id @default(uuid())
+  title          String
+  description    String
+  location       String
+  status         RequestStatus @default(CREATED)
+  requester      User          @relation("RequesterRequests", fields: [requesterId], references: [id])
+  requesterId    String
+  investigator   User?         @relation("InvestigatorRequests", fields: [investigatorId], references: [id])
+  investigatorId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  messages       Message[]
+  report         Report?
+  reviews        Review[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  request   Request  @relation(fields: [requestId], references: [id])
+  requestId String
+  sender    User     @relation("UserMessages", fields: [senderId], references: [id])
+  senderId  String
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id             String   @id @default(uuid())
+  content        String
+  request        Request  @relation(fields: [requestId], references: [id])
+  requestId      String   @unique
+  investigator   User     @relation("InvestigatorReports", fields: [investigatorId], references: [id])
+  investigatorId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Review {
+  id             String   @id @default(uuid())
+  rating         Int
+  comment        String?
+  reviewer       User     @relation(fields: [reviewerId], references: [id])
+  reviewerId     String
+  investigator   User     @relation("InvestigatorReviews", fields: [investigatorId], references: [id])
+  investigatorId String
+  request        Request  @relation(fields: [requestId], references: [id])
+  requestId      String
+  createdAt      DateTime @default(now())
 }

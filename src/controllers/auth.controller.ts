@@ -23,25 +23,6 @@ export const AuthController = {
     }
   },
 
-  async addRole(req: Request, res: Response) {
-    try {
-      const { userId, role } = req.body;
-      const user = await AuthService.addRole(userId, role);
-      sendResponse(res, 200, true, 'Role added successfully', user);
-    } catch (error: any) {
-      sendErrorResponse(res, 400, error.message);
-    }
-  },
-
-  async removeRole(req: Request, res: Response) {
-    try {
-      const { userId, role } = req.body;
-      const user = await AuthService.removeRole(userId, role);
-      sendResponse(res, 200, true, 'Role removed successfully', user);
-    } catch (error: any) {
-      sendErrorResponse(res, 400, error.message);
-    }
-  },
 
   async getCurrentUser(req: Request, res: Response) {
     try {
@@ -53,4 +34,18 @@ export const AuthController = {
       sendErrorResponse(res, 500, 'Internal server error');
     }
   },
+
+  async updateUserInfo(req: Request, res: Response) {
+    try {
+      const { id, ...updateData } = req.body;
+      const user = await AuthService.updateUserInfo(id, updateData);
+      sendResponse(res, 200, true, 'User info updated successfully', user);
+    } catch (error: any) {
+      sendErrorResponse(res, 400, error.message);
+    }
+  },
+
+  
+
+  
 };

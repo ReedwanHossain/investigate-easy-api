@@ -24,7 +24,7 @@ export const AuthService = {
         password: hashedPassword,
         name,
         phone,
-        roles: [Roles.USER],
+        roles: [Roles.USER, Roles.INVESTIGATOR, Roles.REQUESTER],
       },
     });
 
@@ -65,43 +65,26 @@ export const AuthService = {
     };
   },
 
-  async addRole(userId: string, role: Roles) {
-    return prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        throw new Error('User not found');
-      }
+  async updateUserInfo(id: string, updateData: { name?: string; email?: string; phone?: string }) {
+    const existingUser = await prisma.user.findUnique({ where: { id: id } });
+    if (!existingUser) {
+      throw new Error('User not found');
+    }
 
-      if (user.roles.includes(role)) {
-        return user;
+    const updatedUser = await prisma.user.update({
+      where: { id: id },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        roles: true,
+        phone: true
       }
-
-      return tx.user.update({
-        where: { id: userId },
-        data: {
-          roles: { push: role },
-        },
-      });
     });
+
+    return updatedUser;
   },
 
-  async removeRole(userId: string, role: Roles) {
-    return prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      if (!user.roles.includes(role)) {
-        return user;
-      }
-
-      return tx.user.update({
-        where: { id: userId },
-        data: {
-          roles: user.roles.filter((r) => r !== role),
-        },
-      });
-    });
-  },
+  
 };
